@@ -1,0 +1,58 @@
+# Default values for dynamodb-local
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+app_name: "carts-db"
+replicaCount: 3
+
+image:
+  registry:   amazon
+  repository: dynamodb-local
+  tag:        1.20.0
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+service:
+  type: ClusterIP
+  # Annotations to add to the service
+  annotations: {}
+  port: 8000
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+# Configure Security Context
+# See https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
+securityContext:
+  capabilities:
+    drop: [ ALL ]
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

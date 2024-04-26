@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpha-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpha-auth
+  template:
+    metadata:
+      labels:
+        app: alpha-auth
+    spec:
+      containers:
+        - name: alpha-auth
+          image: devopseasylearning/apha-auth:latest
+          imagePullPolicy: Always  # Set the image pull policy to Always
+          env:
+            - name: DB_HOST
+              value: "alpha-db-service" # Use the service name as the hostname
+            - name: DB_PASSWORD
+              value: "BoQU2SSK*PJqYYS8L*w8rDn" # Same as MySQL root password
+          ports:
+            - containerPort: 8080
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alpha-auth-service
+spec:
+  selector:
+    app: alpha-auth
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP

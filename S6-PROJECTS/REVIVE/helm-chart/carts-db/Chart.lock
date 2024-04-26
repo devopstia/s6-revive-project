@@ -1,0 +1,6 @@
+dependencies:
+- name: common
+  repository: https://gildas.github.io/charts
+  version: 1.0.0
+digest: sha256:a0780f5d725f42dd801f0e7d71c290ae28552cd826242002b504da090efc67a6
+generated: "2023-05-11T11:57:52.727637229+09:00"

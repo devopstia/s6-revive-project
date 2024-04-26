@@ -1,0 +1,15 @@
+apiVersion: v2
+appVersion: 1.0.0
+dependencies:
+- name: common
+  repository: https://gildas.github.io/charts
+  version: ~1.0.0
+description: a Helm Chart to deploy a local DynamoDB for development and testing
+home: https://www.breizh.org
+icon: https://cncf-branding.netlify.app/img/projects/helm/horizontal/color/helm-horizontal-color.png
+keywords:
+- database
+- dynamodb
+- dynamodb-local
+name: dynamodb-local
+version: 1.0.0

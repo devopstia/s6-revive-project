@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-configmap
+data:
+  POSTGRES_HOST: postgres-postgresql-ha-postgresql
+  POSTGRES_DB: postgres
+  POSTGRES_USER: s6arsene

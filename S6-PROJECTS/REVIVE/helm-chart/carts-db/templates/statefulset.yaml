@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "common.names.fullname" . }}
+  labels:
+    {{- include "dynamodb-local.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: "dynamodb"
+  selector:
+    matchLabels:
+      {{- include "dynamodb-local.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "dynamodb-local.selectorLabels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: 60
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "dynamodb-local.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: {{ include "dynamodb-local.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: [ "-jar", "/home/dynamodblocal/DynamoDBLocal.jar", "-sharedDb", "-dbPath", "/data" ]
+          env:
+          ports:
+            - protocol: TCP
+              containerPort: 8000
+              name: dynamodb
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name:      storage
+              mountPath: /data
+              subPath:   data
+              readOnly:  false
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: storage
+          emptyDir:
+            sizeLimit: 10Gi

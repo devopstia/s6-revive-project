@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: espresso-shop-config
+data:
+  ProductCatalogUrl: "http://espresso-shop-product-catalog-svc:8091"
+  ReviewsUrl: "http://espresso-shop-reviews-svc:8092"

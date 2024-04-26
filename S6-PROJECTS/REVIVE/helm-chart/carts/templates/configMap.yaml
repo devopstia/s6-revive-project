@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.app_name }}-configmap
+data:
+  JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/urandom"
+  SERVER_TOMCAT_ACCESSLOG_ENABLED: "true"
+  SPRING_PROFILES_ACTIVE: "dynamodb"
+  CARTS_DYNAMODB_ENDPOINT: "http://carts-db:8000"
+  CARTS_DYNAMODB_TABLENAME: "Items"
+  CARTS_DYNAMODB_CREATETABLE: "true"

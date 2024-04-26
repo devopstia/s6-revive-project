@@ -1,0 +1,9 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "expresso-shop-catalog.fullname" . }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: {{- include "expresso-shop-catalog.selectorLabels" . | nindent 8 }}

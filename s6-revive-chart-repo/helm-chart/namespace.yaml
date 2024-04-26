@@ -1,0 +1,44 @@
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+   labels:
+     app.kubernetes.io/created-by: retail-store-sample
+   name: assets
+ ---
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+   labels:
+     app.kubernetes.io/created-by: retail-store-sample
+   name: carts
+ ---
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+   labels:
+     app.kubernetes.io/created-by: retail-store-sample
+   name: catalog
+ ---
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+   labels:
+     app.kubernetes.io/created-by: retail-store-sample
+   name: checkout
+ ---
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+   name: orders
+ ---
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+   name: rabbitmq
+ ---
+ apiVersion: v1
+ kind: Namespace
+ metadata:
+   labels:
+     app.kubernetes.io/created-by: retail-store-sample
+   name: ui

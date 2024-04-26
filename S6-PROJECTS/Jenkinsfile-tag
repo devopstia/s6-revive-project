@@ -1,0 +1,90 @@
+pipeline{
+    agent any 
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '7'))
+        //skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timeout (time: 60, unit: 'MINUTES')
+        timestamps() 
+    }
+    stages {
+        stage('Setup parameters') {
+            steps {
+                script {
+                    properties([
+                        parameters([
+                          string(name: 'TAG_NUMBER',
+                            defaultValue: '',
+                            description: '''Enter your tag number here..example: 1.0.0'''),
+                          string(name: 'BRANCH',
+                            defaultValue: '',
+                            description: '''Enter the branch you wish to tag'''),
+                          string(name: 'COMMIT_MESSAGE',
+                            defaultValue: '',
+                            description: '''Enter your commit message here'''),
+                          string(name: 'DEPLOYER_NAME',
+                            defaultValue: '',
+                            description: '''Enter your name here'''),
+                        ])
+                    ])
+                }
+            }
+        }
+        stage('sanity check') {
+            steps {
+               sh ' bash $WORKSPACE/tag.sh $TAG_NUMBER $BRANCH $COMMIT_MESSAGE $DEPLOYER_NAME '
+            }
+        }
+        stage('Clone Repo') {
+            steps {
+                script {
+                    sh 'rm -rf * || true'
+                    checkout scmGit(branches: [[name: '*/$BRANCH']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-key', url: 'git@github.com:DEL-ORG/S6-PROJECTS.git']])
+                }
+            }
+        }
+        stage('tag & push') {
+            steps {
+              sh('''
+                 cd $WORKSPACE/
+                  git config --global user.email "info@devopseasylearning.com"
+                  git config --global user.name "devopseasylearning"
+                  ''')
+                sshagent (credentials: ['github-key']){
+                sh('git tag -a v$TAG_NUMBER -m "$COMMIT_MESSAGE"')
+                sh('git push origin v$TAG_NUMBER')
+                }
+            }
+        }
+    }
+post {
+   success {
+      slackSend (channel: '#s6-revive-development-alerts', color: 'good', message: "$DEPLOYER_NAME, Application THE REVIVE_APP with tag name $TAG_NUMBER, with commit message $COMMIT_MESSAGE has been SUCCESSFUL :  Branch name  <<${BRANCH}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+      slackSend (channel: '#testing-alerts', color: 'good', message: "Quality Assurance team, Application THE REVIVE_APP with tag name $TAG_NUMBER, with commit message $COMMIT_MESSAGE is ready for TESTING :  Branch name  <<${BRANCH}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+    unstable {
+      slackSend (channel: '#s6-revive-development-alerts', color: 'warning', message: "$DEPLOYER_NAME, Application THE REVIVE_APP UNSTABLE:  Branch name  <<${BRANCH}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+    failure {
+      slackSend (channel: '#s6-revive-development-alerts', color: '#FF0000', message: "$DEPLOYER_NAME, Application THE REVIVE_APP FAILURE:  Branch name  <<${BRANCH}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+    cleanup {
+      deleteDir()
+    }
+    }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

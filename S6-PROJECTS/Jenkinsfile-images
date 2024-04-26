@@ -1,0 +1,215 @@
+pipeline{
+    agent any 
+    environment {
+        AWS_Cred = 'AWS_Cred'
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '7'))
+        //skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timeout (time: 60, unit: 'MINUTES')
+        timestamps() 
+    }
+    stages {
+        stage('Setup parameters') {
+            steps {
+                script {
+                    properties([
+                        parameters([
+                          string(name: 'TAG',
+                            defaultValue: '',
+                            description: '''Enter your tag number here..example: v1.0.0'''),
+                          string(name: 'UI',
+                            defaultValue: '',
+                            description: '''Enter the tag for ui image'''),
+                          string(name: 'CATALOG',
+                            defaultValue: '',
+                            description: '''Enter the tag for catalog image '''),
+                          string(name: 'CATALOG_DB',
+                            defaultValue: '',
+                            description: '''Enter the tag for catalog-db image '''),
+                         string(name: 'CART',
+                            defaultValue: '',
+                            description: '''Enter the tag for cart image '''),
+                         string(name: 'CART_DB',
+                            defaultValue: '',
+                            description: '''Enter the tag for cart-db image '''),
+                         string(name: 'ORDERS',
+                            defaultValue: '',
+                            description: '''Enter the tag for orders image '''),
+                         string(name: 'ORDERS_DB',
+                            defaultValue: '',
+                            description: '''Enter the tag for orders-db image '''),
+                         string(name: 'CHECKOUT',
+                            defaultValue: '',
+                            description: '''Enter the tag for checkout image '''),
+                         string(name: 'CHECKOUT_DB',
+                            defaultValue: '',
+                            description: '''Enter the tag for checkout-db image '''),
+                         string(name: 'ASSETS',
+                            defaultValue: '',
+                            description: '''Enter the tag for assets image '''),
+                         string(name: 'ASSETS_DB',
+                            defaultValue: '',
+                            description: '''Enter the tag for assets-db image '''),
+                        ])
+                    ])
+                }
+            }
+        }
+        stage('sanity check') {
+            steps {
+               sh ' bash $WORKSPACE/image.sh $TAG $UI $CATALOG $CATALOG_DB $CART $CART_DB $ORDERS $ORDERS_DB $CHECKOUT ${CHECKOUT_DB} ${ASSETS} ${ASSETS_DB} '
+            }
+        }
+        stage('clone repo') {
+            steps {
+              sh'rm -rf * || true'
+                sshagent (credentials: ['github-key']){
+                  sh('git clone -b $TAG git@github.com:DEL-ORG/S6-PROJECTS.git')
+            }
+            }
+        }
+        stage('Build ui') {
+            steps {
+                    sh '''
+                    cd $WORKSPACE/S6-PROJECTS/REVIVE/src/ui
+                    docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/ui:${UI} .
+                    '''
+                }
+          }
+        stage('Build catalog') {
+              steps {
+                  sh '''
+                    cd $WORKSPACE/S6-PROJECTS/REVIVE/src/catalog
+                    docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/catalog:${CATALOG} .
+                    docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/catalog-db:${CATALOG_DB} -f Dockerfile-db .
+                  '''
+              }
+          }
+        stage('Build cart') {
+            steps {
+                sh '''
+                  cd $WORKSPACE/S6-PROJECTS/REVIVE/src/cart
+                  docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/carts:${CART} .
+                  docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/carts-db:${CART_DB} -f Dockerfile-dynamodb .
+                '''
+            }
+        }
+        stage('Build orders') {
+            steps {
+                sh '''
+                  cd $WORKSPACE/S6-PROJECTS/REVIVE/src/orders
+                  docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/orders:${ORDERS} .
+                  docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/orders-db:${ORDERS_DB} -f Dockerfile-db .                 
+                '''
+            }
+        }
+        stage('Build checkout') {
+            steps {
+                sh '''
+                cd $WORKSPACE/S6-PROJECTS/REVIVE/src/checkout
+                docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/checkout:${CHECKOUT} .
+                docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/checkout-db:${CHECKOUT_DB} -f Dockerfile-db .
+                '''
+            }
+        }
+        stage('Build assets') {
+            steps {
+                sh '''
+                  cd $WORKSPACE/S6-PROJECTS/REVIVE/src/assets
+                  docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/asset:${ASSETS} .
+                  docker build -t 637423375996.dkr.ecr.us-east-1.amazonaws.com/asset-db:${ASSETS_DB} -f Dockerfile-rabbitmq .
+                '''
+            }
+         } 
+        stage('Configure AWS CLI') {          
+            steps {
+             script {
+              withCredentials([[
+                $class: 'AmazonWebServicesCredentialsBinding',
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                credentialsId: env.AWS_Cred,
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                     ]])                      {   
+                   sh 'aws configure set aws_access_key_id ${AWS_ACCESS_KEY_ID}'
+                   sh 'aws configure set aws_secret_access_key ${AWS_SECRET_ACCESS_KEY}'
+                   sh 'aws configure set default.region "us-east-1"'
+                   sh 'aws configure set default.output json'
+             }
+         }
+         }
+        }
+        stage('Login ECR') {
+          steps {
+            script {
+                sh 'aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 637423375996.dkr.ecr.us-east-1.amazonaws.com'
+            }
+         }
+        }
+          stage('Push ui') {
+           steps {
+               sh '''
+               docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/ui:${UI}       
+               '''
+           }
+        }
+        stage('Push catalog') {
+           steps {
+               sh '''
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/catalog:${CATALOG}
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/catalog-db:${CATALOG_DB}
+               '''
+           }
+        }
+        stage('Push cart') {
+           steps {
+               sh '''
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/carts:${CART}
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/carts-db:${CART_DB}
+               '''
+           }
+        }
+        stage('Push orders') {
+           steps {
+               sh '''
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/orders:${ORDERS}
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/orders-db:${ORDERS_DB}
+           
+               '''
+           }
+        }
+        stage('Push checkout') {
+           steps {
+               sh '''
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/checkout:${CHECKOUT}
+           docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/checkout-db:${CHECKOUT_DB}
+               '''
+           }
+        }
+        stage('Push assets') {
+           steps {
+                sh '''
+            docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/asset:${ASSETS}
+            docker push 637423375996.dkr.ecr.us-east-1.amazonaws.com/asset-db:${ASSETS_DB}
+                '''
+            }
+        }  
+    }
+    post {
+   
+   success {
+      slackSend (channel: '#s6-revive-development-alerts', color: 'good', message: " Application The REVIVE_APP with tag name\nui:${UI}\ncatalog:${CATALOG}\ncatalog-db:${CATALOG_DB}\ncart:${CART}\ncart-db:${CART_DB}\norders:${ORDERS}\norders-db:${ORDERS_DB}\ncheckout:${CHECKOUT}\ncheckout-db:${CHECKOUT_DB}\nassets:${ASSETS}\nassets-db:${ASSETS_DB}\nis available on Dockerhub for testing :  Branch name  <<${env.BRANCH}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+      slackSend (channel: '#testing-alerts', color: 'good', message: "Quality Assurance team, Application The REVIVE_APP with tag name\nui:${UI}\ncatalog:${CATALOG}\ncatalog-db:${CATALOG_DB}\ncart:${CART}\ncart-db:${CART_DB}\norders:${ORDERS}\norders-db:${ORDERS_DB}\ncheckout:${CHECKOUT}\ncheckout-db:${CHECKOUT_DB}\nassets:${ASSETS}\nassets-db:${ASSETS_DB}\nis available on Dockerhub for TESTING :  Branch name  <<${env.BRANCH}>>  Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+
+    failure {
+      slackSend (channel: '#s6-revive-development-alerts', color: '#FF0000', message: " Application The REVIVE_APP FAILURE:  Branch name  <<${env.BRANCH}>> Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+    }
+   
+    cleanup {
+      deleteDir()
+    }
+}
+        }
+    

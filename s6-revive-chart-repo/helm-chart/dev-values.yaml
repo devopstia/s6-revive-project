@@ -1,0 +1,35 @@
+repository:
+  tag: 49
+  assets:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/asset
+
+  carts:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/carts
+
+  cart_dynamodb:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/carts-db
+ 
+  catalog:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/catalog
+
+ 
+  catalog_mysql:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/catalog-db
+
+  checkout:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/checkout
+
+  checkout_redis:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/checkout-db
+
+  orders:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/orders
+
+  orders_mysql:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/orders-db
+
+  orders_rabbitmq:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/asset-db
+
+  ui:
+   image: 637423375996.dkr.ecr.us-east-1.amazonaws.com/ui

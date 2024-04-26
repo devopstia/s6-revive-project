@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@using Humanizer
+@model System.Collections.Generic.List<EspressoShop.Web.Models.ProductViewModel>
+
+
+<main role="main">
+
+    <div class="jumbotron mt-4">
+        <h1 class="display-4">Espresso Shop</h1>
+        <p class="lead">At DEVOPS EASY LEARNING we make it happen, we are the best training school in USA and beyong, we will take you from ZERO and make you and IT HERO.</p>
+    </div>
+
+    <div>
+        <div class="container">
+
+            <div class="row">
+                @foreach (var product in Model)
+                {
+                    <div class="col-md-4">
+                        <div class="card mb-4 shadow-sm">
+                            <img src="~/images/@(product.Name.ToLower()).jpg" height="225" alt="@product.Name"/>
+                            <div class="card-body">
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text">@product.Description.Truncate(65)</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <a class="btn btn-outline-primary" asp-route-id="@product.Id" asp-action="product" role="button">Learn More</a>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                }
+            </div>
+        </div>
+    </div>
+
+</main>
+

@@ -1,0 +1,83 @@
+﻿
+@{
+    ViewData["Title"] = "ProductView";
+
+}
+@using System.Linq
+@model EspressoShop.Web.Models.ProductDetailsViewModel
+
+<main role="main">
+    <div>
+        <div class="container bg-light py-3 px-lg-5 py-lg-5">
+            <div class="row">
+                <div class="col-12 col-lg-5">
+                    <img src="~/images/@(Model.Name.ToLower()).jpg" height="225" alt="@Model.Name" />
+
+                </div>
+                <div class="col-12 col-lg-7">
+                    <h2>@Model.Name</h2>
+                    <hr />
+                    <p>
+                        @Model.Description
+                    </p>
+                </div>
+            </div>
+
+            <hr />
+
+            <h5 class="">Reviews</h5>
+
+            <div class="row mb-5">
+                <div class="col-lg-10 col-xl-9">
+
+                    @if (Model.Reviews != null)
+                    {
+                        if (Model.Reviews.Count > 0)
+                        {
+                            @foreach (var review in Model.Reviews)
+                            {
+                                <div class="media review">
+                                    <div class="media-body">
+                                        <h5 class="mt-2 mb-1">@review.Headline</h5>
+                                        <span class="text-muted">By @review.ReviewerName at @review.CreationDate</span>
+                                        @if (review.Stars.HasValue)
+                                        {
+                                            <div class="mb-2">
+
+                                                @{
+                                                    var stars = Enumerable.Range(0, review.Stars.Value);
+                                                    foreach (var start in stars)
+                                                    {
+                                                        <i class="text-warning">★</i>
+                                                    }
+                                                }
+                                            </div>
+                                        }
+                                        <p class="text-muted">
+                                            @review.ReviewText
+                                        </p>
+                                    </div>
+                                </div>
+                                <hr>
+                            }
+                        }
+                        else
+                        {
+                                <div>No reviews yet!</div>
+                        }
+
+                    }
+                    else
+                    {
+                        <div>Failed to retrieve product reviews</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+</main>

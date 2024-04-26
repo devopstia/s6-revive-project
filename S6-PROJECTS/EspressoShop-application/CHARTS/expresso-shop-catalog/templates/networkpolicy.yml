@@ -1,0 +1,13 @@
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: {{ include "expresso-shop-catalog.fullname" . }}
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app: expresso
+#   policyTypes:
+#   - Ingress
+#   - Egress
+#   ingress: []
+#   egress: []

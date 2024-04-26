@@ -1,0 +1,14 @@
+apiVersion: v2
+appVersion: 1.0.0
+description: A Helm Chart Library of common helpers to write charts
+home: https://gildas.github.io/charts
+icon: https://cncf-branding.netlify.app/img/projects/helm/horizontal/color/helm-horizontal-color.png
+keywords:
+- template
+- logging
+maintainers:
+- email: gildas@breizh.org
+  name: Gildas Cherruel
+name: common
+type: library
+version: 1.0.0
